@@ -16,15 +16,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Minimal Swagger (you can expand later)
-const swaggerSpec = swaggerJSDoc({
-    definition: {
-        openapi: '3.0.1',
-        info: { title: 'OneCardDex API', version: '1.0.0' },
-        servers: [{ url: process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}` }]
-    },
-    apis: [] // add route JSDoc later if you want
-});
+
+import { swaggerSpec } from './docs/swagger.js';
+
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Health check
