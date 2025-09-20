@@ -5,21 +5,22 @@ import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJSDoc from 'swagger-jsdoc';
 import dexCards from './routes/dexCards.js';
-import { errorHandler } from './mw/errors.js';
+import { requestId, notFound, errorHandler } from './mw/errors.js';
+import { swaggerSpec } from './docs/swagger.js';
 
 dotenv.config();
-
-await mongoose.connect(process.env.MONGODB_URI, { dbName: 'onecarddex' });
-console.log('Mongo connected');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 
-import { swaggerSpec } from './docs/swagger.js';
+await mongoose.connect(process.env.MONGODB_URI, { dbName: 'onecarddex' });
+const BASE_URL = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`;
+const makeSwaggerSpec = swaggerSpec(BASE_URL);
 
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger API docs
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(makeSwaggerSpec));
 
 // Health check
 app.get('/health', (req, res) => res.json({ ok: true }));
@@ -28,6 +29,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/api/dex-cards', dexCards);
 
 // Errors
+app.use(notFound);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

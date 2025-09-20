@@ -1,5 +1,5 @@
-// src/docs/swagger.js
-export const swaggerSpec = {
+
+export const swaggerSpec = (baseURL) => ({
     openapi: "3.0.3",
     info: {
         title: "OneCardDex API",
@@ -7,9 +7,7 @@ export const swaggerSpec = {
         description:
             "Track exactly one current card per National Pokédex number (1–1025). Replace with a cooler print over time; old cards are moved to history."
     },
-    servers: [
-        { url: process.env.PUBLIC_URL || "http://localhost:3000" }
-    ],
+    servers: [{ url: baseURL || "http://localhost:3000" }],
     tags: [
         { name: "DexCards", description: "Manage one-per-Pokémon binder slots" },
         { name: "Admin", description: "Dev/seed helpers (not for production)" }
@@ -195,4 +193,4 @@ export const swaggerSpec = {
             }
         }
     }
-};
+});
