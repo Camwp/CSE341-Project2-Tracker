@@ -7,6 +7,7 @@ import swaggerJSDoc from 'swagger-jsdoc';
 import dexCards from './routes/dexCards.js';
 import { requestId, notFound, errorHandler } from './mw/errors.js';
 import { swaggerSpec } from './docs/swagger.js';
+import pokemonRoutes from './routes/pokemon.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 
 // Routes
 app.use('/api/dex-cards', dexCards);
+app.use('/api/pokemon', pokemonRoutes);
 
 // Errors
 app.use(notFound);

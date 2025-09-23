@@ -14,6 +14,29 @@ export const swaggerSpec = (baseURL) => ({
     ],
     components: {
         schemas: {
+            Pokemon: {
+                type: "object",
+                properties: {
+                    dex: { type: "integer", minimum: 1, maximum: 1025, example: 25 },
+                    name: { type: "string", example: "Pikachu" },
+                    types: { type: "array", items: { type: "string" }, example: ["electric"] },
+                    generation: { type: "integer", example: 1 },
+                    spriteUrl: { type: "string", format: "uri" },
+                    createdAt: { type: "string", format: "date-time" },
+                    updatedAt: { type: "string", format: "date-time" }
+                }
+            },
+            CreatePokemonBody: {
+                type: "object",
+                required: ["dex", "name"],
+                properties: {
+                    dex: { type: "integer", minimum: 1, maximum: 1025 },
+                    name: { type: "string" },
+                    types: { type: "array", items: { type: "string" } },
+                    generation: { type: "integer" },
+                    spriteUrl: { type: "string", format: "uri" }
+                }
+            },
             CardSnapshot: {
                 type: "object",
                 required: ["cardName", "setCode", "rarity"],
@@ -191,6 +214,60 @@ export const swaggerSpec = (baseURL) => ({
                     }
                 }
             }
+        },
+        "/api/pokemon": {
+            get: {
+                tags: ["DexCards"],
+                summary: "List Pokémon (reference collection)",
+                parameters: [
+                    { in: "query", name: "name", schema: { type: "string" }, description: "substring match" },
+                    { in: "query", name: "type", schema: { type: "string" }, description: "filter by type" },
+                    { in: "query", name: "from", schema: { type: "integer" } },
+                    { in: "query", name: "to", schema: { type: "integer" } }
+                ],
+                responses: {
+                    "200": { description: "OK", content: { "application/json": { schema: { type: "array", items: { $ref: "#/components/schemas/Pokemon" } } } } }
+                }
+            },
+            post: {
+                tags: ["DexCards"],
+                summary: "Create a Pokémon record",
+                requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CreatePokemonBody" } } } },
+                responses: {
+                    "201": { description: "Created", content: { "application/json": { schema: { $ref: "#/components/schemas/Pokemon" } } } },
+                    "400": { description: "Validation error" },
+                    "409": { description: "Duplicate dex" }
+                }
+            }
+        },
+        "/api/pokemon/{dex}": {
+            get: {
+                tags: ["DexCards"],
+                summary: "Get a Pokémon by dex",
+                parameters: [{ $ref: "#/components/parameters/DexParam" }],
+                responses: {
+                    "200": { description: "OK", content: { "application/json": { schema: { $ref: "#/components/schemas/Pokemon" } } } },
+                    "404": { description: "Not found" }
+                }
+            },
+            put: {
+                tags: ["DexCards"],
+                summary: "Update a Pokémon by dex",
+                parameters: [{ $ref: "#/components/parameters/DexParam" }],
+                requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CreatePokemonBody" } } } },
+                responses: {
+                    "200": { description: "Updated", content: { "application/json": { schema: { $ref: "#/components/schemas/Pokemon" } } } },
+                    "400": { description: "Validation error" },
+                    "404": { description: "Not found" }
+                }
+            },
+            delete: {
+                tags: ["DexCards"],
+                summary: "Delete a Pokémon by dex",
+                parameters: [{ $ref: "#/components/parameters/DexParam" }],
+                responses: { "204": { description: "Deleted" }, "404": { description: "Not found" } }
+            }
         }
+
     }
 });
