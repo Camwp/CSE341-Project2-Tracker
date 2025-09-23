@@ -40,3 +40,4 @@ export const patchDexMetaSchema = z.object({
     status: z.enum(['empty', 'owned']).optional(),
     pokemonName: z.string().optional()
 });
+
