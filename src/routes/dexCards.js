@@ -2,11 +2,11 @@ import { Router } from 'express';
 import DexCard from '../models/DexCard.js';
 import { validate } from '../mw/validate.js';
 import { createDexCardSchema, replaceCurrentSchema, patchDexMetaSchema } from '../validation/schemas.js';
+import { ensureAuth } from '../mw/auth.js';
 
 const r = Router();
 
-// Seed 1..1025 (dev-only)
-r.post('/admin/seed', async (req, res, next) => {
+r.post('/admin/seed', ensureAuth, async (req, res, next) => {
     try {
         const ops = [];
         for (let i = 1; i <= 1025; i++) {
@@ -23,8 +23,7 @@ r.post('/admin/seed', async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-// List (filters: owned=true/false, from/to range)
-r.get('/', async (req, res, next) => {
+r.get('/', ensureAuth, async (req, res, next) => {
     try {
         const { owned, from, to } = req.query;
         const q = {};
@@ -40,8 +39,7 @@ r.get('/', async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-// Get one
-r.get('/:dex', async (req, res, next) => {
+r.get('/:dex', ensureAuth, async (req, res, next) => {
     try {
         const item = await DexCard.findOne({ dex: Number(req.params.dex) }).lean();
         if (!item) return res.status(404).json({ error: 'NotFound' });
@@ -49,16 +47,14 @@ r.get('/:dex', async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-// Create a slot (if you don't seed all at once)
-r.post('/', validate(createDexCardSchema), async (req, res, next) => {
+r.post('/', ensureAuth, validate(createDexCardSchema), async (req, res, next) => {
     try {
         const created = await DexCard.create(req.body);
         res.status(201).json(created);
     } catch (e) { next(e); }
 });
 
-// Replace/upgrade current card
-r.put('/:dex/replace', validate(replaceCurrentSchema), async (req, res, next) => {
+r.put('/:dex/replace', ensureAuth, validate(replaceCurrentSchema), async (req, res, next) => {
     try {
         const dex = Number(req.params.dex);
         const doc = await DexCard.findOne({ dex });
@@ -74,8 +70,7 @@ r.put('/:dex/replace', validate(replaceCurrentSchema), async (req, res, next) =>
     } catch (e) { next(e); }
 });
 
-// Clear current (remove from binder)
-r.delete('/:dex/current', async (req, res, next) => {
+r.delete('/:dex/current', ensureAuth, async (req, res, next) => {
     try {
         const doc = await DexCard.findOne({ dex: Number(req.params.dex) });
         if (!doc) return res.status(404).json({ error: 'NotFound' });
@@ -89,8 +84,7 @@ r.delete('/:dex/current', async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-// Update metadata (wishlist, priority, status, pokemonName)
-r.patch('/:dex', validate(patchDexMetaSchema), async (req, res, next) => {
+r.patch('/:dex', ensureAuth, validate(patchDexMetaSchema), async (req, res, next) => {
     try {
         const updated = await DexCard.findOneAndUpdate(
             { dex: Number(req.params.dex) },

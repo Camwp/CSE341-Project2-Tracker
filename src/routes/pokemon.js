@@ -2,10 +2,11 @@ import { Router } from 'express';
 import Pokemon from '../models/Pokemon.js';
 import { validate } from '../mw/validate.js';
 import { createPokemonSchema, updatePokemonSchema, listPokemonQuerySchema } from '../validation/pokemonSchemas.js';
+import { ensureAuth } from '../mw/auth.js';
 
 const r = Router();
 
-r.get('/', validate(listPokemonQuerySchema, 'query'), async (req, res, next) => {
+r.get('/', ensureAuth, validate(listPokemonQuerySchema, 'query'), async (req, res, next) => {
     try {
         const { name, type, from, to } = req.query;
         const q = {};
@@ -21,7 +22,7 @@ r.get('/', validate(listPokemonQuerySchema, 'query'), async (req, res, next) => 
     } catch (e) { next(e); }
 });
 
-r.get('/:dex', async (req, res, next) => {
+r.get('/:dex', ensureAuth, async (req, res, next) => {
     try {
         const item = await Pokemon.findOne({ dex: Number(req.params.dex) }).lean();
         if (!item) return res.status(404).json({ error: 'NotFound', message: 'Pokemon not found' });
@@ -29,14 +30,14 @@ r.get('/:dex', async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-r.post('/', validate(createPokemonSchema), async (req, res, next) => {
+r.post('/', ensureAuth, validate(createPokemonSchema), async (req, res, next) => {
     try {
         const created = await Pokemon.create(req.body);
         res.status(201).json(created);
     } catch (e) { next(e); }
 });
 
-r.put('/:dex', validate(updatePokemonSchema), async (req, res, next) => {
+r.put('/:dex', ensureAuth, validate(updatePokemonSchema), async (req, res, next) => {
     try {
         const updated = await Pokemon.findOneAndUpdate(
             { dex: Number(req.params.dex) },
@@ -48,7 +49,7 @@ r.put('/:dex', validate(updatePokemonSchema), async (req, res, next) => {
     } catch (e) { next(e); }
 });
 
-r.delete('/:dex', async (req, res, next) => {
+r.delete('/:dex', ensureAuth, async (req, res, next) => {
     try {
         const deleted = await Pokemon.findOneAndDelete({ dex: Number(req.params.dex) });
         if (!deleted) return res.status(404).json({ error: 'NotFound', message: 'Pokemon not found' });

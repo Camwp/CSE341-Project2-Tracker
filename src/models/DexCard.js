@@ -8,10 +8,10 @@ const CardSnapshot = new mongoose.Schema({
     cardNumber: String,
     rarity: { type: String, required: true },
     language: { type: String, default: 'EN' },
-    condition: { type: String, default: 'NM' }, // NM/LP/MP/HP/DMG
-    finish: String, // holo/reverse/full-art/gold
+    condition: { type: String, default: 'NM' },
+    finish: String,
     isGraded: { type: Boolean, default: false },
-    grade: String, // PSA 10, etc.
+    grade: String,
     imageUrl: String,
     acquiredAt: Date,
     pricePaid: Number,
@@ -20,11 +20,14 @@ const CardSnapshot = new mongoose.Schema({
 }, { _id: false });
 
 const DexCard = new mongoose.Schema({
+    userId: { type: mongoose.Types.ObjectId, ref: 'User', index: true },
+
     dex: { type: Number, unique: true, index: true, required: true }, // 1..1025
-    pokemonName: String,        // optional cache
+
+    pokemonName: String,
     status: { type: String, default: 'empty' }, // "empty" | "owned"
     priority: { type: Number, default: 3 },     // 1..5 upgrade urgency
-    wishlist: String,           // "alt art JP", etc.
+    wishlist: String,
     current: { type: CardSnapshot, default: null },
     history: [{
         replacedAt: { type: Date, default: Date.now },

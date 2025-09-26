@@ -10,9 +10,13 @@ export const swaggerSpec = (baseURL) => ({
     servers: [{ url: baseURL || "http://localhost:3000" }],
     tags: [
         { name: "DexCards", description: "Manage one-per-Pokémon binder slots" },
-        { name: "Admin", description: "Dev/seed helpers (not for production)" }
+        { name: "Admin", description: "Dev/seed helpers (not for production)" },
+        { name: "Pokemon", description: "Manage Pokemon names" }
     ],
     components: {
+        securitySchemes: {
+            cookieAuth: { type: "apiKey", in: "cookie", name: "connect.sid", description: "Session cookie set after Google OAuth" }
+        },
         schemas: {
             Pokemon: {
                 type: "object",
@@ -25,6 +29,7 @@ export const swaggerSpec = (baseURL) => ({
                     createdAt: { type: "string", format: "date-time" },
                     updatedAt: { type: "string", format: "date-time" }
                 }
+
             },
             CreatePokemonBody: {
                 type: "object",
@@ -128,7 +133,8 @@ export const swaggerSpec = (baseURL) => ({
     paths: {
         "/health": {
             get: {
-                tags: ["DexCards"],
+                tags: ["Admin"],
+                security: [{ cookieAuth: [] }],
                 summary: "Health check",
                 responses: { "200": { description: "OK" } }
             }
@@ -137,6 +143,7 @@ export const swaggerSpec = (baseURL) => ({
             get: {
                 tags: ["DexCards"],
                 summary: "List dex slots",
+                security: [{ cookieAuth: [] }],
                 parameters: [
                     { name: "owned", in: "query", schema: { type: "string", enum: ["true", "false"] }, description: "Filter by owned/empty" },
                     { name: "from", in: "query", schema: { type: "integer", minimum: 1 }, description: "Min dex" },
@@ -148,6 +155,7 @@ export const swaggerSpec = (baseURL) => ({
             },
             post: {
                 tags: ["DexCards"],
+                security: [{ cookieAuth: [] }],
                 summary: "Create a single slot (if you don't use the seed endpoint)",
                 requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CreateDexCardBody" } } } },
                 responses: {
@@ -159,6 +167,7 @@ export const swaggerSpec = (baseURL) => ({
         "/api/dex-cards/{dex}": {
             get: {
                 tags: ["DexCards"],
+                security: [{ cookieAuth: [] }],
                 summary: "Get a single dex slot",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
                 responses: {
@@ -168,6 +177,7 @@ export const swaggerSpec = (baseURL) => ({
             },
             patch: {
                 tags: ["DexCards"],
+                security: [{ cookieAuth: [] }],
                 summary: "Update metadata (wishlist, priority, status, pokemonName)",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
                 requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/PatchDexMetaBody" } } } },
@@ -181,6 +191,7 @@ export const swaggerSpec = (baseURL) => ({
         "/api/dex-cards/{dex}/replace": {
             put: {
                 tags: ["DexCards"],
+                security: [{ cookieAuth: [] }],
                 summary: "Replace/upgrade the current card for this Pokémon",
                 description: "If a current card exists, it is pushed to history; the new card becomes current and status=owned.",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
@@ -195,6 +206,7 @@ export const swaggerSpec = (baseURL) => ({
         "/api/dex-cards/{dex}/current": {
             delete: {
                 tags: ["DexCards"],
+                security: [{ cookieAuth: [] }],
                 summary: "Clear the current card (moves it to history with reason=remove)",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
                 responses: {
@@ -206,6 +218,7 @@ export const swaggerSpec = (baseURL) => ({
         "/api/dex-cards/admin/seed": {
             post: {
                 tags: ["Admin"],
+                security: [{ cookieAuth: [] }],
                 summary: "Seed 1..1025 empty slots (idempotent, dev only)",
                 responses: {
                     "200": {
@@ -217,7 +230,8 @@ export const swaggerSpec = (baseURL) => ({
         },
         "/api/pokemon": {
             get: {
-                tags: ["DexCards"],
+                tags: ["Pokemon"],
+                security: [{ cookieAuth: [] }],
                 summary: "List Pokémon (reference collection)",
                 parameters: [
                     { in: "query", name: "name", schema: { type: "string" }, description: "substring match" },
@@ -230,7 +244,8 @@ export const swaggerSpec = (baseURL) => ({
                 }
             },
             post: {
-                tags: ["DexCards"],
+                tags: ["Pokemon"],
+                security: [{ cookieAuth: [] }],
                 summary: "Create a Pokémon record",
                 requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CreatePokemonBody" } } } },
                 responses: {
@@ -242,7 +257,8 @@ export const swaggerSpec = (baseURL) => ({
         },
         "/api/pokemon/{dex}": {
             get: {
-                tags: ["DexCards"],
+                tags: ["Pokemon"],
+                security: [{ cookieAuth: [] }],
                 summary: "Get a Pokémon by dex",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
                 responses: {
@@ -251,7 +267,8 @@ export const swaggerSpec = (baseURL) => ({
                 }
             },
             put: {
-                tags: ["DexCards"],
+                tags: ["Pokemon"],
+                security: [{ cookieAuth: [] }],
                 summary: "Update a Pokémon by dex",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
                 requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/CreatePokemonBody" } } } },
@@ -262,12 +279,17 @@ export const swaggerSpec = (baseURL) => ({
                 }
             },
             delete: {
-                tags: ["DexCards"],
+                tags: ["Pokemon"],
+                security: [{ cookieAuth: [] }],
                 summary: "Delete a Pokémon by dex",
                 parameters: [{ $ref: "#/components/parameters/DexParam" }],
                 responses: { "204": { description: "Deleted" }, "404": { description: "Not found" } }
             }
-        }
+        },
+        "/auth/google": { get: { tags: ["Auth"], summary: "Start Google OAuth", responses: { "302": { description: "Redirect to Google" } } } },
+        "/auth/me": { get: { tags: ["Auth"], summary: "Current user", responses: { "200": { description: "User or 401 if not logged in" } } } },
+        "/auth/logout": { post: { tags: ["Auth"], summary: "Logout (clear session)", responses: { "204": { description: "No Content" } } } }
+
 
     }
 });
