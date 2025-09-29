@@ -1,15 +1,20 @@
+// routes/auth.js
 import { Router } from 'express';
 import passport from 'passport';
 
 const r = Router();
 
-r.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+// Start GitHub OAuth
+r.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-r.get('/google/callback',
-    passport.authenticate('google', { failureRedirect: '/auth/failure' }),
-    (_req, res) => res.redirect('/docs')
+// GitHub OAuth callback
+r.get(
+    '/github/callback',
+    passport.authenticate('github', { failureRedirect: '/auth/failure' }),
+    (_req, res) => res.redirect('/docs') // or '/api-docs' if you prefer
 );
 
+// Failure + session helpers (unchanged)
 r.get('/failure', (_req, res) => res.status(401).json({ error: 'OAuthFailed' }));
 
 r.get('/me', (req, res) => {
