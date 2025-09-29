@@ -286,7 +286,7 @@ export const swaggerSpec = (baseURL) => ({
                 responses: { "204": { description: "Deleted" }, "404": { description: "Not found" } }
             }
         },
-        "/auth/google": { get: { tags: ["Auth"], summary: "Start Google OAuth", responses: { "302": { description: "Redirect to Google" } } } },
+        "/auth/github": { get: { tags: ["Auth"], summary: "Start Github OAuth", responses: { "302": { description: "Redirect to Github" } } } },
         "/auth/me": { get: { tags: ["Auth"], summary: "Current user", responses: { "200": { description: "User or 401 if not logged in" } } } },
         "/auth/logout": { post: { tags: ["Auth"], summary: "Logout (clear session)", responses: { "204": { description: "No Content" } } } }
 
